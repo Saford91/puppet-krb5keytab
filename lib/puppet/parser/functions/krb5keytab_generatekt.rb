@@ -23,7 +23,7 @@ module Puppet::Parser::Functions
     # Validate arguments
     args = args_in[0]
     fail "Usage: krb5keytab_generatekt(options_hash) -- #{args.inspect}" if ! args.is_a?(Hash)
-    req_keys = %w{admin_keytab admin_principal realm ldap_ou admin_server}
+    req_keys = %w{admin_keytab admin_principal realm admin_server}
     req_keys.each do |key|
       fail "Required option key #{key} was not defined" if ! args.key?(key)
     end
@@ -32,7 +32,6 @@ module Puppet::Parser::Functions
     kadmin = Kadmin.new(
       args['admin_principal'],
       args['admin_keytab'],
-      args['ldap_ou'],
       args['admin_server'],
       args['realm']
     )
@@ -80,14 +79,13 @@ module Puppet::Parser::Functions
     require 'shellwords'
     require 'tempfile'
     require 'base64'
-    def initialize(principal, keytab, ou, admin_server, realm)
+    def initialize(principal, keytab, admin_server, realm)
       @principal = principal
       kt = File.open(keytab, "r")
       kt.binmode
       @keytab = kt.read
       kt.close
       File.unlink(keytab)
-      @ou = ou
       @admin_server = admin_server
       @realm = realm
     end
@@ -138,7 +136,6 @@ module Puppet::Parser::Functions
   
     def createprinc (princ)
       host_princ_cmd = "addprinc -randkey"
-      host_princ_cmd.concat(" -x containerdn=\"#{@ou}\"") if ! @ou.empty?
       host_princ_cmd.concat(" #{princ}")
       output = run_kadmin(host_princ_cmd)
       return false if output.empty?

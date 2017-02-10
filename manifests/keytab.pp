@@ -23,7 +23,6 @@ define krb5keytab::keytab (
   $admin_princ       = hiera('krb5keytab::admin-principal'),
   $krb5_realm        = hiera('krb5keytab::krb5-realm'),
   $hiera_backend     = hiera('krb5keytab::hiera-backend'),
-  $ldap_ou           = hiera('krb5keytab::ldap-ou'),
   $krb5_admin_server = hiera('krb5keytab::krb5-admin-server'),
   $hiera_key         = '*undefined*',
   $h_keytab          = '*undefined*',
@@ -67,12 +66,11 @@ define krb5keytab::keytab (
       #
   
       $keytab_from_generatekt = krb5keytab_generatekt( {
-        admin_keytab => $admin_keytab_file_path,
+        admin_keytab    => $admin_keytab_file_path,
         admin_principal => $admin_princ,
-        realm => $krb5_realm,
-        ldap_ou => $ldap_ou,
-        admin_server => $krb5_admin_server,
-        principal => $name,
+        realm           => $krb5_realm,
+        admin_server    => $krb5_admin_server,
+        principal       => $name,
       } )
   
       #
