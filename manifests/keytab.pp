@@ -19,47 +19,19 @@
 # Requires stdlib
 
 define krb5keytab::keytab (
-  $admin_keytab = hiera('krb5keytab::admin-keytab', '*undefined*'),
-  $admin_princ = hiera('krb5keytab::admin-principal', '*undefined*'),
-  $krb5_realm = hiera('krb5keytab::krb5-realm', '*undefined*'),
-  $hiera_backend = hiera('krb5keytab::hiera-backend', '*undefined*'),
-  $ldap_ou = hiera('krb5keytab::ldap-ou', '*undefined*'),
-  $krb5_admin_server = hiera('krb5keytab::krb5-admin-server', '*undefined*'),
-  $hiera_key = '*undefined*',
-  $h_keytab = '*undefined*',
-  $keytab = '*null*',
-  $keytab_owner = 'root',
-  $keytab_group = 'root',
-  $keytab_mode = '0600',
+  $admin_keytab      = hiera('krb5keytab::admin-keytab'),
+  $admin_princ       = hiera('krb5keytab::admin-principal'),
+  $krb5_realm        = hiera('krb5keytab::krb5-realm'),
+  $hiera_backend     = hiera('krb5keytab::hiera-backend'),
+  $ldap_ou           = hiera('krb5keytab::ldap-ou'),
+  $krb5_admin_server = hiera('krb5keytab::krb5-admin-server'),
+  $hiera_key         = '*undefined*',
+  $h_keytab          = '*undefined*',
+  $keytab            = '*null*',
+  $keytab_owner      = 'root',
+  $keytab_group      = 'root',
+  $keytab_mode       = '0600',
 ) {
-  
-  #
-  # Verify required parameters
-  #
-  
-  if ($admin_keytab == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::admin-keytab\' (base64 encoded kerberos admin credential) is not defined in hiera'
-  }
-
-  if ($admin_princ == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::admin-principal\' (name of the kerberos admin principal) is not defined in hiera'
-  }
-
-  if ($krb5_realm == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::krb5-realm\' (Kerberos realm) is not defined in hiera'
-  }
-
-  if ($hiera_backend == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::hiera-backend\' (name of backend script to run) is not defined in hiera'
-  }
-
-  if ($ldap_ou == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::ldap-ou\' (where to put host keys in LDAP) is not defined in hiera'
-  }
-
-  if ($krb5_admin_server == '*undefined*') {
-    fail 'Missing parameter \'krb5keytab::krb5-admin-server\' (FQDN and optionally port of kerberos admin server) is not defined in hiera'
-  }
   
   #
   # Determine the proper hiera name for the keytab
