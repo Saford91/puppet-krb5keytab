@@ -58,11 +58,11 @@ module Puppet::Parser::Functions
       the_principals.each do |principal|
         success = kadmin.addkeytab(principal, path)
         fail "Unable to create #{path} with key for #{principal}!" if ! success
-        f = File.open(path, "rb")
-        f.binmode
-        content = f.read
-        f.close
       end
+      f = File.open(path, "rb")
+      f.binmode
+      content = f.read
+      f.close
     ensure
       File.unlink(path) if File.file?(path)
     end
