@@ -37,11 +37,7 @@ class krb5keytab (
   # Build/obtain the keytab
   #
   
-  notice("principals : ${principals}")
-  notice("krb5principals : ${::krb5principals}")
-
-
-  if ($::krbprincipals == unique(concat($principals, $::krb5principals))) {
+  if ($::krb5principals == unique(concat($principals, $::krb5principals))) {
 
     # If the keytab is already present, only ensure file permissions
 
