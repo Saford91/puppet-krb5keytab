@@ -23,7 +23,7 @@ module Puppet::Parser::Functions
     # Validate arguments
     args = args_in[0]
     fail "Usage: krb5keytab_generatekt(options_hash) -- #{args.inspect}" if ! args.is_a?(Hash)
-    req_keys = %w{admin_keytab admin_principal realm admin_server}
+    req_keys = %w{principals admin_keytab admin_principal realm admin_server}
     req_keys.each do |key|
       fail "Required option key #{key} was not defined" if ! args.key?(key)
     end
@@ -36,20 +36,17 @@ module Puppet::Parser::Functions
       args['realm']
     )
     
-    # Check to see if the principal exists now
-    # Create it if it doesn't
-    the_principal = nil
-    if (args.key?('principal'))
-      the_principal = args['principal']
-      the_principal += "@#{args['realm']}" if the_principal !~ /@/
-    else  
-      fail "Required option 'fqdn' was not defined" if ! args.key?('fqdn')
-      the_principal = "host/#{args['fqdn']}@#{args['realm']}"
+    the_principals = args['principals']
+    the_principals.each_with_index do |principal, index| 
+      the_principals[index] += "@#{args['realm']}" if principal !~ /@/
     end
-    princ = kadmin.getprinc(the_principal)
-    if princ.nil?
-      success = kadmin.createprinc(the_principal)
-      fail "Unable to create #{the_principal}!" if ! success
+
+    the_principals.each_with_index do |principal, index|
+      princ = kadmin.getprinc(principal)
+      if princ.nil?
+        success = kadmin.createprinc(principal)
+        fail "Unable to create #{principal}!" if ! success
+      end
     end
     
     # Grab the keytab
@@ -58,12 +55,14 @@ module Puppet::Parser::Functions
     tmpfile.close
     tmpfile.unlink
     begin
-      success = kadmin.addkeytab(the_principal, path)
-      fail "Unable to create #{path} with key for #{the_principal}!" if ! success
-      f = File.open(path, "rb")
-      f.binmode
-      content = f.read
-      f.close
+      the_principals.each do |principal|
+        success = kadmin.addkeytab(principal, path)
+        fail "Unable to create #{path} with key for #{principal}!" if ! success
+        f = File.open(path, "rb")
+        f.binmode
+        content = f.read
+        f.close
+      end
     ensure
       File.unlink(path) if File.file?(path)
     end

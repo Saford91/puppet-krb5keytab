@@ -14,16 +14,77 @@
 #
 # -------------------------------------------------------
 #
-class krb5keytab (
-$admin_keytab = hiera('krb5keytab::admin-keytab', '*undefined*'),
-$admin_princ = hiera('krb5keytab::admin-principal', '*undefined*'),
-$krb5_realm = hiera('krb5keytab::krb5-realm', '*undefined*'),
-$hiera_backend = hiera('krb5keytab::hiera-backend', '*undefined*'),
-$ldap_ou = hiera('krb5keytab::ldap-ou', '*undefined*'),
-$krb5_admin_server = hiera('krb5keytab::krb5-admin-server', '*undefined*'),
-$h_keytab = hiera('krb5-keytab', '*undefined*')
-){
+# This class manages creating kerberos principals and adding them to
+# /etc/krb5.keytab
+# -----------------
+# Requires stdlib
 
-  class { 'krb5keytab::host_keytab': } ->
-  Class['krb5keytab']
+class krb5keytab (
+  $admin_keytab      = undef,
+  $admin_princ       = undef,
+  $krb5_realm        = undef,
+  $krb5_admin_server = undef,
+  $keytab            = '/etc/krb5.keytab',
+  $keytab_owner      = 'root',
+  $keytab_group      = 'root',
+  $keytab_mode       = '0600',
+  $principals        = hiera_array("krb5keytab::keytab::principals"),
+) {
+  
+  validate_absolute_path($keytab)
+
+  #
+  # Build/obtain the keytab
+  #
+  
+  notice("principals : ${principals}")
+  notice("krb5principals : ${::krb5principals}")
+
+
+  if ($::krbprincipals == unique(concat($principals, $::krb5principals))) {
+
+    # If the keytab is already present, only ensure file permissions
+
+    file { $keytab:
+      path  => $keytab,
+      owner => $keytab_owner,
+      group => $keytab_group,
+      mode  => $keytab_mode,
+    }
+
+  } else {
+
+    # Store the keytab contents in a file on the server and pass in the
+    # argument as a filename. Otherwise if there's an error the puppet agent might
+    # be able to see the key in the error message, and that would be bad!
+
+    $admin_keytab_file_path = krb5keytab_writefile(base64('decode',$admin_keytab))
+
+    #
+    # Get the keytab from the Kerberos server. This calls the
+    # lib/puppet/parser/functions/krb5keytab_generatekt.rb file in this module.
+    #
+
+    $keytab_content = krb5keytab_generatekt( {
+      admin_keytab    => $admin_keytab_file_path,
+      admin_principal => $admin_princ,
+      realm           => $krb5_realm,
+      admin_server    => $krb5_admin_server,
+      principals      => $principals,
+    } )
+
+    #
+    # Apply the keytab
+    #
+
+    file { $keytab:
+      path    => $keytab,
+      owner   => $keytab_owner,
+      group   => $keytab_group,
+      mode    => $keytab_mode,
+      replace => true,
+      content => $keytab_content,
+    }
+  }
 }
+
