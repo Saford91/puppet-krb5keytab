@@ -2,7 +2,7 @@
 
 Facter.add(:krb5principals) do
   setcode do
-  princs = Hash.new
+  princs = Array.new
     if File.file?('/usr/bin/klist')
       output = `/usr/bin/klist -k /etc/krb5.keytab`
 
@@ -11,10 +11,10 @@ Facter.add(:krb5principals) do
           next
         end
         princ = line.gsub(/\s+/m, ' ').strip.split(" ")
-        princs[princ[1]] = princ[0]
+        princs.push(princ[1].split('@')[0])
       end
     end
-    princs
+    p princs.uniq
   end
 end
 
