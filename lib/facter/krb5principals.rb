@@ -14,7 +14,7 @@ Facter.add(:krb5principals) do
         princs.push(princ[1].split('@')[0])
       end
     end
-    p princs.uniq
+    princs.uniq
   end
 end
 
